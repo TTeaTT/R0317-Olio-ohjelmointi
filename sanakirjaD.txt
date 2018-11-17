@@ -1,0 +1,110 @@
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Scanner;
+import java.util.Iterator;
+
+public class Sanakirja {
+
+	@SuppressWarnings("unchecked")
+	public static void main(String[] args)
+			throws IOException, ClassNotFoundException, FileNotFoundException, EOFException {
+
+		// Tallennetaan sanakirja oliona
+		FileOutputStream fos = new FileOutputStream("src\\sanakirjaTallennus.oma");
+		ObjectOutputStream olionKirjoittaja = new ObjectOutputStream(fos);
+
+		// Luetaan aiemmin tallennettu sanakirja
+		FileInputStream fis = new FileInputStream("src\\sanakirjaTallennus.oma");
+		ObjectInputStream olionLukija = new ObjectInputStream(fis);
+
+		Scanner lukija = new Scanner(System.in);
+
+		// Luodaan HashMap
+		HashMap<String, String> parit = new HashMap<String, String>();
+
+		// Tässä on ongelma. Ei suostu lukemaan tallennettua tiedostoa
+		try {
+			parit = (HashMap<String, String>) olionLukija.readObject();
+			System.out.println(parit);
+		} catch (Exception e) {
+			System.out.println("Tapahtui virhe!");
+		}
+
+		// jos sanakirja on tyhjä, lisätään joitain sanoja
+		if (parit.size() <= 0 || parit == null) {
+			String[] suomi = { "kissa", "koira", "hevonen", "auto", "vene" };
+			String[] englanti = { "cat", "dog", "horse", "car", "boat" };
+			for (int i = 0; i < suomi.length; i++) {
+				parit.put(englanti[i], suomi[i]);
+			}
+		}
+
+		// D-kohta, luetaan sanat kahdesta tekstitiedostosta
+		File tiedostoEN = new File("src\\sanojaEN.txt");
+		File tiedostoFI = new File("src\\sanojaFI.txt");
+		Scanner enkku = new Scanner(tiedostoEN);
+		Scanner suomi = new Scanner(tiedostoFI);
+		do {
+			String syöte = enkku.nextLine();
+			String syöte2 = suomi.nextLine();
+			parit.put(syöte, syöte2);
+		} while (enkku.hasNextLine());
+		enkku.close();
+		suomi.close();
+
+		// Lisätään sanoja sanakirjaan
+		System.out.println("Sana englanniksi? (tyhjä lopettaa)");
+		do {
+			String syöte = lukija.nextLine();
+			if (syöte.equals("")) {
+				break;
+			} else {
+				System.out.println("Sana suomeksi? (tyhjä lopettaa)");
+				String syöte2 = lukija.nextLine();
+				parit.put(syöte, syöte2);
+				System.out.println("Sana englanniksi? (tyhjä lopettaa)");
+			}
+		} while (lukija.hasNextLine());
+
+		// Tulostetaan sanakirjan sisältö
+		System.out.print("Sanakirjan sisältö: { ");
+		Iterator<Entry<String, String>> it = parit.entrySet().iterator();
+		while (it.hasNext()) {
+			HashMap.Entry<String, String> alkio = (HashMap.Entry<String, String>) it.next();
+			System.out.print(alkio.getKey() + "=" + alkio.getValue() + " ");
+		}
+		System.out.println("}\n");
+
+		// Käännetään sanoja
+		System.out.println("Minkä englanninkielisen sanan käännöksen haluat tietää? (tyhjä sana lopettaa)");
+		do {
+			String sana = lukija.nextLine();
+			if (sana.equals("")) {
+				break;
+			} else {
+
+				String uusiSana = parit.get(sana);
+				if (uusiSana == null) {
+					System.out.println("Sanaa ei löydy!\n");
+				} else
+					System.out.println("Sanan \"" + sana + "\" käännös on \"" + uusiSana + "\".\n");
+			}
+			System.out.println("Minkä englanninkielisen sanan käännöksen haluat tietää? (tyhjä sana lopettaa)");
+		} while (lukija.hasNextLine());
+
+		lukija.close();
+		System.out.println("Ohjelma lopetetaan, kiitos käynnistä!");
+
+		// Tallennetaan sanakirja oliona
+		olionKirjoittaja.writeObject(parit);
+		olionKirjoittaja.flush();
+		olionKirjoittaja.close();
+		fos.close();
+		System.out.println("Sanakirja tallennettu!");
+
+		olionLukija.close();
+		fis.close();
+	}
+
+}
