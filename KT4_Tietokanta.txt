@@ -1,0 +1,118 @@
+package olioita;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.*;
+
+public class Tietokanta extends KirjaLuokka {
+
+	public static void main(String[] args) throws SQLException {
+
+		KirjaLuokka olio = new KirjaLuokka();
+
+		// KÄYTTÖLIITTYMÄ
+
+		JFrame ikkuna = new JFrame("Kirjasto");
+		ikkuna.setSize(500, 300);
+		ikkuna.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		DefaultTableModel model = new DefaultTableModel();
+		model.addColumn("Teos");
+		model.addColumn("Tekijä");
+		model.addColumn("Vuosi");
+
+		// TIETOKANTAYHTEYS
+
+		// Connection con = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		final Connection con = DriverManager.getConnection("jdbc:mysql://sql7.freemysqlhosting.net:3306/sql7265172",
+				"sql7265172", "FQiqQ3RK1I");
+
+		try {
+			// Luodaan Statement-olio, joka keskustelee tietokannan kanssa
+			stmt = con.createStatement();
+
+			// Luodaan tulosjoukko, johon sijoitetaan kyselyn tulos
+			rs = stmt.executeQuery("SELECT * FROM kirja");
+
+			// Tulosjoukko käydään silmukassa läpi
+			while (rs.next())
+				model.addRow(new Object[] { rs.getString(1), rs.getString(2), rs.getInt(3) });
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		JTable table = new JTable(model);
+
+		JScrollPane scrollPane = new JScrollPane(table);
+		ikkuna.add(scrollPane);
+		scrollPane.setViewportView(table);
+
+		// AVATAAN IKKUNA TIETOJEN LISÄYSTÄ VARTEN
+		JButton nappi = new JButton("Lisää tietoja");
+		ikkuna.add(nappi, BorderLayout.SOUTH);
+
+		nappi.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+
+				JTextField teoskenttä = new JTextField(10);
+				JTextField tekijäkenttä = new JTextField(10);
+				JTextField vuosikenttä = new JTextField(10);
+
+				JPanel myPanel = new JPanel();
+
+				myPanel.add(new JLabel("Teos: "));
+				myPanel.add(teoskenttä);
+
+				myPanel.add(new JLabel("Tekijä: "));
+				myPanel.add(tekijäkenttä);
+
+				myPanel.add(new JLabel("Vuosi: "));
+				myPanel.add(vuosikenttä);
+
+				int result = JOptionPane.showConfirmDialog(null, myPanel, "Anna tiedot", JOptionPane.OK_CANCEL_OPTION);
+				if (result == JOptionPane.OK_OPTION) {
+					olio.setTeos(teoskenttä.getText());
+					olio.setTekijä(tekijäkenttä.getText());
+					olio.setVuosi(Integer.parseInt(vuosikenttä.getText()));
+					model.addRow(new Object[] { olio.getTeos(), olio.getTekijä(), olio.getVuosi() });
+
+					String sql = "INSERT INTO kirja (kirjan_nimi, tekijä, julkaisuvuosi) values (?,?,?)";
+
+					PreparedStatement preparedStmt;
+					try {
+						preparedStmt = con.prepareStatement(sql);
+
+						preparedStmt.setString(1, olio.getTeos());
+						preparedStmt.setString(2, olio.getTekijä());
+						preparedStmt.setInt(3, olio.getVuosi());
+
+						preparedStmt.execute();
+
+					} catch (SQLException e1) {
+						e1.printStackTrace();
+					}
+
+				}
+
+			}
+
+		});
+
+		ikkuna.setVisible(true);
+	}
+
+}

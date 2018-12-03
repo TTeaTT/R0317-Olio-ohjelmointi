@@ -1,0 +1,42 @@
+package olioita;
+
+public class KirjaLuokka {
+
+	private String teos, tekijä;
+	private int vuosi;
+
+	public KirjaLuokka() {
+		this.teos = "";
+		this.tekijä = "";
+		this.vuosi = 0;
+	}
+
+	public String toString() {
+		return "KirjaLuokka [teos=" + teos + ", tekijä=" + tekijä + ", vuosi=" + vuosi + "]";
+	}
+
+	public String getTeos() {
+		return teos;
+	}
+
+	public void setTeos(String teos) {
+		this.teos = teos;
+	}
+
+	public String getTekijä() {
+		return tekijä;
+	}
+
+	public void setTekijä(String tekijä) {
+		this.tekijä = tekijä;
+	}
+
+	public int getVuosi() {
+		return vuosi;
+	}
+
+	public void setVuosi(int vuosi) {
+		this.vuosi = vuosi;
+	}
+
+}
